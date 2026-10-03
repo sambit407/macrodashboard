@@ -2,26 +2,184 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>Macro Market Dashboard</title>
 
   <style>
+    :root {
+      --page-background: #f4f6f8;
+      --card-background: #ffffff;
+      --primary-text: #17202a;
+      --secondary-text: #657786;
+      --border-color: #e4e8ec;
+      --table-heading: #f8fafc;
+      --accent-color: #175cd3;
+      --error-color: #c62828;
+      --warning-background: #fff8e1;
+      --highlight-background: #f0f7ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 24px;
-      background: #f4f6f8;
-      font-family: Arial, sans-serif;
-      color: #17202a;
+      background: var(--page-background);
+      color: var(--primary-text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page-container {
+      width: min(1500px, 100%);
+      margin: 0 auto;
     }
 
     h1 {
-      margin-bottom: 6px;
+      margin: 0 0 6px;
+      font-size: 30px;
     }
 
     .subtitle {
-      color: #657786;
       margin-bottom: 24px;
+      color: var(--secondary-text);
     }
+
+    /* =========================================================
+       SPOT PRICE TABLE
+       ========================================================= */
+
+    .spot-panel {
+      margin-bottom: 24px;
+      overflow: hidden;
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .spot-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .spot-panel-header h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .refresh-button {
+      padding: 9px 15px;
+      cursor: pointer;
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent-color);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .refresh-button:hover {
+      opacity: 0.9;
+    }
+
+    .refresh-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .spot-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .spot-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .spot-table th,
+    .spot-table td {
+      padding: 15px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .spot-table th {
+      background: var(--table-heading);
+      color: var(--secondary-text);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spot-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spot-table tbody tr:hover {
+      background: #fafcff;
+    }
+
+    .derived-row {
+      background: var(--highlight-background);
+    }
+
+    .instrument-name {
+      font-weight: 700;
+    }
+
+    .instrument-code {
+      display: block;
+      margin-top: 4px;
+      color: var(--secondary-text);
+      font-size: 12px;
+    }
+
+    .spot-value {
+      font-size: 19px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 18px;
+      background: #fbfcfd;
+      color: var(--secondary-text);
+      font-size: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-weight: 600;
+    }
+
+    .spot-note {
+      padding: 11px 18px;
+      background: var(--warning-background);
+      color: #5d4a00;
+      font-size: 12px;
+      line-height: 1.5;
+      border-top: 1px solid #f0df9c;
+    }
+
+    /* =========================================================
+       CHART GRID
+       ========================================================= */
 
     .dashboard {
       display: grid;
@@ -30,370 +188,816 @@
     }
 
     .card {
-      min-height: 420px;
+      min-width: 0;
+      height: 500px;
       padding: 14px;
-      background: white;
-      border: 1px solid #e4e8ec;
+      overflow: hidden;
+      background: var(--card-background);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
     .card h2 {
+      height: 24px;
       margin: 0 0 12px;
       font-size: 18px;
     }
 
-    @media (max-width: 800px) {
+    .chart-container {
+      width: 100%;
+      height: calc(100% - 36px);
+    }
+
+    .tradingview-widget-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .tradingview-widget-container__widget {
+      width: 100%;
+      height: calc(100% - 28px);
+    }
+
+    .tradingview-widget-copyright {
+      height: 28px;
+      padding-top: 7px;
+      color: #9db2bd;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .tradingview-widget-copyright a {
+      color: #2962ff;
+      text-decoration: none;
+    }
+
+    .tradingview-widget-copyright a:hover {
+      text-decoration: underline;
+    }
+
+    /* =========================================================
+       RESPONSIVE LAYOUT
+       ========================================================= */
+
+    @media (max-width: 900px) {
+      body {
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: 25px;
+      }
+
       .dashboard {
         grid-template-columns: 1fr;
+      }
+
+      .card {
+        height: 475px;
+      }
+
+      .status-row {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .spot-panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .spot-table th,
+      .spot-table td {
+        padding: 13px 12px;
+      }
+
+      .spot-table th:nth-child(3),
+      .spot-table td:nth-child(3) {
+        display: none;
+      }
+
+      .spot-value {
+        font-size: 16px;
+      }
+
+      .card {
+        height: 450px;
+        padding: 10px;
       }
     }
   </style>
 </head>
 
 <body>
-  <h1>Macro Market Dashboard</h1>
-  <div class="subtitle">
-    Gold, Silver, Oil, Dollar, Currency and Rates
-  </div>
+  <main class="page-container">
 
-  <div class="dashboard">
-    <section class="card">
-      <h2>Gold · XAU/USD</h2>
- <!-- TradingView Widget BEGIN -->
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/XAUUSD/?exchange=OANDA" rel="noopener nofollow" target="_blank"><span class="blue-text">XAUUSD chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "OANDA:XAUUSD",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-<!-- TradingView Widget END -->
-    </section>
+    <h1>Macro Market Dashboard</h1>
 
-    <section class="card">
-      <h2>US Dollar Index</h2>
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/CAPITALCOM-DXY/" rel="noopener nofollow" target="_blank"><span class="blue-text">DXY chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "CAPITALCOM:DXY",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-    </section>
+    <div class="subtitle">
+      Gold, Silver, Oil, Dollar, Currency, Cryptocurrency and Bond Yields
+    </div>
 
-    <section class="card">
-      <h2>Brent Crude</h2>
-     <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/BRENT/?exchange=THINKMARKETS" rel="noopener nofollow" target="_blank"><span class="blue-text">BRENT chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "THINKMARKETS:BRENT",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-    </section>
+    <!-- =========================================================
+         CURRENT SPOT PRICE TABLE
+         ========================================================= -->
 
-    <section class="card">
-      <h2>Silver XAG/USD</h2>
-   <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/XAGUSD/?exchange=OANDA" rel="noopener nofollow" target="_blank"><span class="blue-text">XAGUSD chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "OANDA:XAGUSD",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
+    <section class="spot-panel">
+
+      <div class="spot-panel-header">
+        <h2>Current Spot Rates</h2>
+
+        <button
+          id="refreshButton"
+          class="refresh-button"
+          type="button"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div class="spot-table-wrapper">
+        <table class="spot-table">
+
+          <thead>
+            <tr>
+              <th>Instrument</th>
+              <th>Current spot value</th>
+              <th>Unit</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            <tr>
+              <td>
+                <span class="instrument-name">Spot Gold</span>
+                <span class="instrument-code">XAU/INR</span>
+              </td>
+
+              <td
+                id="xauInr"
+                class="spot-value"
+              >
+                Loading…
+              </td>
+
+              <td>Indian rupees per troy ounce</td>
+            </tr>
+
+            <tr class="derived-row">
+              <td>
+                <span class="instrument-name">Spot Gold · 10g</span>
+                <span class="instrument-code">
+                  Calculated from XAU/INR
+                </span>
+              </td>
+
+              <td
+                id="gold10gInr"
+                class="spot-value"
+              >
+                Loading…
+              </td>
+
+              <td>Indian rupees per 10 grams</td>
+            </tr>
+
+            <tr>
+              <td>
+                <span class="instrument-name">Spot Silver</span>
+                <span class="instrument-code">XAG/INR</span>
+              </td>
+
+              <td
+                id="xagInr"
+                class="spot-value"
+              >
+                Loading…
+              </td>
+
+              <td>Indian rupees per troy ounce</td>
+            </tr>
+
+            <tr class="derived-row">
+              <td>
+                <span class="instrument-name">Spot Silver · 10g</span>
+                <span class="instrument-code">
+                  Calculated from XAG/INR
+                </span>
+              </td>
+
+              <td
+                id="silver10gInr"
+                class="spot-value"
+              >
+                Loading…
+              </td>
+
+              <td>Indian rupees per 10 grams</td>
+            </tr>
+
+            <tr>
+              <td>
+                <span class="instrument-name">US Dollar</span>
+                <span class="instrument-code">USD/INR</span>
+              </td>
+
+              <td
+                id="usdInr"
+                class="spot-value"
+              >
+                Loading…
+              </td>
+
+              <td>Indian rupees per US dollar</td>
+            </tr>
+
+          </tbody>
+
+        </table>
+      </div>
+
+      <div class="status-row">
+        <span id="lastUpdated">
+          Retrieving market data…
+        </span>
+
+        <span id="dataStatus"></span>
+      </div>
+
+      <div class="spot-note">
+        Gold and Silver values are international spot prices converted
+        into Indian rupees. The 10-gram values are calculated using
+        1 troy ounce = 31.1034768 grams. These values do not include
+        Indian import duties, GST, dealer premiums, jewellery-making
+        charges or local market spreads.
+      </div>
 
     </section>
 
-    <section class="card">
-      <h2>USD/INR</h2>
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/USDINR/?exchange=FX_IDC" rel="noopener nofollow" target="_blank"><span class="blue-text">USDINR chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "FX_IDC:USDINR",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-    </section>
+    <!-- =========================================================
+         CHART DASHBOARD
+         ========================================================= -->
 
-    <section class="card">
-      <h2>US 10-Year Yield</h2>
-    <!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/US10Y/?exchange=PYTH" rel="noopener nofollow" target="_blank"><span class="blue-text">US10Y chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "PYTH:US10Y",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
+    <div class="dashboard">
+
+      <section class="card">
+        <h2>Gold · XAU/USD</h2>
+        <div id="chart-gold" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>US Dollar Index · DXY</h2>
+        <div id="chart-dxy" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>Brent Crude</h2>
+        <div id="chart-brent" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>Silver · XAG/USD</h2>
+        <div id="chart-silver" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>USD/INR</h2>
+        <div id="chart-usdinr" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>US 10-Year Treasury Yield</h2>
+        <div id="chart-us10y" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>Bitcoin · BTC/USD</h2>
+        <div id="chart-bitcoin" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>Japan Long-Term Interest Rate</h2>
+        <div id="chart-japan10y" class="chart-container"></div>
+      </section>
+
+      <section class="card">
+        <h2>India Long-Term Interest Rate</h2>
+        <div id="chart-india10y" class="chart-container"></div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- =========================================================
+       SPOT RATE SCRIPT
+       ========================================================= -->
+
+  <script>
+    /*
+      API request:
+        currency=INR
+        unit=oz
+
+      Relevant API fields:
+        data.xau.price
+          Gold in INR per troy ounce.
+
+        data.silver_usd_oz
+          Silver in USD per troy ounce.
+
+        data.fx_rate
+          USD/INR conversion rate.
+
+      Calculations:
+        XAG/INR = silver_usd_oz × fx_rate
+
+        10g price =
+          INR per troy ounce × 10 ÷ 31.1034768
+    */
+
+    const SPOT_API_URL =
+      "https://xaus.com/api/v1/spot?currency=INR&unit=oz";
+
+    const GRAMS_PER_TROY_OUNCE = 31.1034768;
+
+    const xauInrElement =
+      document.getElementById("xauInr");
+
+    const gold10gInrElement =
+      document.getElementById("gold10gInr");
+
+    const xagInrElement =
+      document.getElementById("xagInr");
+
+    const silver10gInrElement =
+      document.getElementById("silver10gInr");
+
+    const usdInrElement =
+      document.getElementById("usdInr");
+
+    const lastUpdatedElement =
+      document.getElementById("lastUpdated");
+
+    const dataStatusElement =
+      document.getElementById("dataStatus");
+
+    const refreshButton =
+      document.getElementById("refreshButton");
+
+
+    function formatInr(value, decimals = 2) {
+      return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      }).format(value);
+    }
+
+
+    function showLoadingState() {
+      refreshButton.disabled = true;
+      refreshButton.textContent = "Refreshing…";
+
+      dataStatusElement.className = "";
+      dataStatusElement.textContent =
+        "Connecting to data source…";
+    }
+
+
+    function clearLoadingState() {
+      refreshButton.disabled = false;
+      refreshButton.textContent = "Refresh";
+    }
+
+
+    function showUnavailableValues() {
+      xauInrElement.textContent = "Unavailable";
+      gold10gInrElement.textContent = "Unavailable";
+      xagInrElement.textContent = "Unavailable";
+      silver10gInrElement.textContent = "Unavailable";
+      usdInrElement.textContent = "Unavailable";
+    }
+
+
+    async function loadSpotRates() {
+      showLoadingState();
+
+      try {
+        const response = await fetch(SPOT_API_URL, {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          let apiErrorMessage = "";
+
+          try {
+            const errorData = await response.json();
+            apiErrorMessage = errorData.error || "";
+          } catch {
+            /*
+              The error response did not contain JSON.
+            */
+          }
+
+          throw new Error(
+            apiErrorMessage ||
+            `Spot-price request failed with HTTP ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+
+        /*
+          Read and validate the API values.
+        */
+
+        const xauInr =
+          Number(data.xau?.price);
+
+        const xagUsd =
+          Number(data.silver_usd_oz);
+
+        const usdInr =
+          Number(data.fx_rate);
+
+        if (!Number.isFinite(xauInr)) {
+          throw new Error(
+            "The API response is missing a valid xau.price value."
+          );
+        }
+
+        if (!Number.isFinite(xagUsd)) {
+          throw new Error(
+            "The API response is missing a valid silver_usd_oz value."
+          );
+        }
+
+        if (!Number.isFinite(usdInr)) {
+          throw new Error(
+            "The API response is missing a valid fx_rate value."
+          );
+        }
+
+        /*
+          Convert Silver from USD per troy ounce
+          into INR per troy ounce.
+        */
+
+        const xagInr =
+          xagUsd * usdInr;
+
+        /*
+          Convert Gold and Silver from INR per troy ounce
+          into INR per 10 grams.
+        */
+
+        const gold10gInr =
+          (xauInr / GRAMS_PER_TROY_OUNCE) * 10;
+
+        const silver10gInr =
+          (xagInr / GRAMS_PER_TROY_OUNCE) * 10;
+
+        /*
+          Display all five values.
+        */
+
+        xauInrElement.textContent =
+          formatInr(xauInr, 2);
+
+        gold10gInrElement.textContent =
+          formatInr(gold10gInr, 2);
+
+        xagInrElement.textContent =
+          formatInr(xagInr, 2);
+
+        silver10gInrElement.textContent =
+          formatInr(silver10gInr, 2);
+
+        usdInrElement.textContent =
+          formatInr(usdInr, 4);
+
+        /*
+          Display the source timestamp.
+        */
+
+        const sourceTimestamp =
+          data.price_as_of ||
+          data.updated_at ||
+          data.data_state?.as_of;
+
+        if (sourceTimestamp) {
+          const formattedTimestamp =
+            new Date(sourceTimestamp).toLocaleString(
+              "en-IN",
+              {
+                dateStyle: "medium",
+                timeStyle: "medium",
+                timeZone: "Asia/Kolkata"
+              }
+            );
+
+          lastUpdatedElement.textContent =
+            `Data timestamp: ${formattedTimestamp} IST`;
+        } else {
+          lastUpdatedElement.textContent =
+            "The API did not provide a data timestamp.";
+        }
+
+        /*
+          Display source and freshness information.
+        */
+
+        const status =
+          data.data_state?.status || "unknown";
+
+        const warnings = [];
+
+        if (data.stale === true) {
+          warnings.push(
+            "Gold price is marked stale"
+          );
+        }
+
+        if (data.fx_stale === true) {
+          warnings.push(
+            "Currency rate is using fallback data"
+          );
+        }
+
+        if (warnings.length > 0) {
+          dataStatusElement.textContent =
+            warnings.join(" · ");
+
+          dataStatusElement.className =
+            "error-message";
+        } else {
+          const goldSource =
+            data.price_source || "not specified";
+
+          const silverSource =
+            data.silver_source || "not specified";
+
+          const fxSource =
+            data.fx_source || "not specified";
+
+          dataStatusElement.textContent =
+            `Status: ${status} · ` +
+            `Gold: ${goldSource} · ` +
+            `Silver: ${silverSource} · ` +
+            `FX: ${fxSource}`;
+
+          dataStatusElement.className = "";
+        }
+
+      } catch (error) {
+        console.error(
+          "Spot-rate error:",
+          error
+        );
+
+        showUnavailableValues();
+
+        lastUpdatedElement.textContent =
+          "Spot prices could not be retrieved.";
+
+        dataStatusElement.textContent =
+          error.message;
+
+        dataStatusElement.className =
+          "error-message";
+
+      } finally {
+        clearLoadingState();
+      }
+    }
+
+
+    refreshButton.addEventListener(
+      "click",
+      loadSpotRates
+    );
+
+    /*
+      Fetch the prices when the dashboard opens.
+    */
+
+    loadSpotRates();
+
+    /*
+      Refresh the values every five minutes.
+    */
+
+    setInterval(
+      loadSpotRates,
+      5 * 60 * 1000
+    );
   </script>
-</div>
-<!-- TradingView Widget END -->
-    </section>
-<section class="card">
-<h2>Bitcoin</h2>
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/BTCUSD/?exchange=OANDA" rel="noopener nofollow" target="_blank"><span class="blue-text">Bitcoin price</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "OANDA:BTCUSD",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
+
+  <!-- =========================================================
+       TRADINGVIEW CHART SCRIPT
+       ========================================================= -->
+
+  <script>
+    function createTradingViewChart(
+      containerId,
+      symbol,
+      chartLink,
+      linkText
+    ) {
+      const chartHost =
+        document.getElementById(containerId);
+
+      const widgetContainer =
+        document.createElement("div");
+
+      widgetContainer.className =
+        "tradingview-widget-container";
+
+      widgetContainer.style.height = "100%";
+      widgetContainer.style.width = "100%";
+
+
+      const widgetElement =
+        document.createElement("div");
+
+      widgetElement.className =
+        "tradingview-widget-container__widget";
+
+
+      const copyrightElement =
+        document.createElement("div");
+
+      copyrightElement.className =
+        "tradingview-widget-copyright";
+
+
+      const copyrightLink =
+        document.createElement("a");
+
+      copyrightLink.href = chartLink;
+      copyrightLink.target = "_blank";
+      copyrightLink.rel = "noopener nofollow";
+
+
+      const linkTextElement =
+        document.createElement("span");
+
+      linkTextElement.textContent =
+        linkText;
+
+      copyrightLink.appendChild(
+        linkTextElement
+      );
+
+      copyrightElement.appendChild(
+        copyrightLink
+      );
+
+
+      const attributionText =
+        document.createElement("span");
+
+      attributionText.textContent =
+        " by TradingView";
+
+      copyrightElement.appendChild(
+        attributionText
+      );
+
+
+      const widgetScript =
+        document.createElement("script");
+
+      widgetScript.type =
+        "text/javascript";
+
+      widgetScript.src =
+        "https://s3.tradingview.com/external-embedding/" +
+        "embed-widget-advanced-chart.js";
+
+      widgetScript.async = true;
+
+      widgetScript.textContent =
+        JSON.stringify({
+          allow_symbol_change: true,
+          calendar: false,
+          details: false,
+          hide_side_toolbar: true,
+          hide_top_toolbar: false,
+          hide_legend: false,
+          hide_volume: false,
+          hotlist: false,
+          interval: "W",
+          locale: "en",
+          save_image: true,
+          style: "2",
+          symbol: symbol,
+          theme: "light",
+          timezone: "Asia/Kolkata",
+          backgroundColor:
+            "rgba(255, 255, 255, 1)",
+          gridColor:
+            "rgba(156, 39, 176, 0.18)",
+          watchlist: [],
+          withdateranges: true,
+          compareSymbols: [],
+          support_host:
+            "https://www.tradingview.com",
+          studies: [],
+          autosize: true
+        });
+
+
+      widgetContainer.appendChild(
+        widgetElement
+      );
+
+      widgetContainer.appendChild(
+        copyrightElement
+      );
+
+      widgetContainer.appendChild(
+        widgetScript
+      );
+
+      chartHost.appendChild(
+        widgetContainer
+      );
+    }
+
+
+    createTradingViewChart(
+      "chart-gold",
+      "OANDA:XAUUSD",
+      "https://www.tradingview.com/symbols/XAUUSD/?exchange=OANDA",
+      "XAU/USD chart"
+    );
+
+    createTradingViewChart(
+      "chart-dxy",
+      "TVC:DXY",
+      "https://www.tradingview.com/symbols/TVC-DXY/",
+      "US Dollar Index chart"
+    );
+
+    createTradingViewChart(
+      "chart-brent",
+      "THINKMARKETS:BRENT",
+      "https://www.tradingview.com/symbols/BRENT/?exchange=THINKMARKETS",
+      "Brent chart"
+    );
+
+    createTradingViewChart(
+      "chart-silver",
+      "OANDA:XAGUSD",
+      "https://www.tradingview.com/symbols/XAGUSD/?exchange=OANDA",
+      "XAG/USD chart"
+    );
+
+    createTradingViewChart(
+      "chart-usdinr",
+      "FX_IDC:USDINR",
+      "https://www.tradingview.com/symbols/USDINR/?exchange=FX_IDC",
+      "USD/INR chart"
+    );
+
+    createTradingViewChart(
+      "chart-us10y",
+      "TVC:US10Y",
+      "https://www.tradingview.com/symbols/TVC-US10Y/",
+      "US 10-Year Yield chart"
+    );
+
+    createTradingViewChart(
+      "chart-bitcoin",
+      "OANDA:BTCUSD",
+      "https://www.tradingview.com/symbols/BTCUSD/?exchange=OANDA",
+      "Bitcoin price chart"
+    );
+
+    createTradingViewChart(
+      "chart-japan10y",
+      "FRED:IRLTLT01JPM156N",
+      "https://www.tradingview.com/symbols/FRED-IRLTLT01JPM156N/",
+      "Japan long-term rate chart"
+    );
+
+    createTradingViewChart(
+      "chart-india10y",
+      "FRED:INDIRLTLT01STM",
+      "https://www.tradingview.com/symbols/FRED-INDIRLTLT01STM/",
+      "India long-term rate chart"
+    );
   </script>
-</div>
-<!-- TradingView Widget END -->
-</section>
- 
-<section class="card">
-<h2>Japan 10-Year Yield</h2>
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/FRED-IRLTLT01JPM156N/" rel="noopener nofollow" target="_blank"><span class="blue-text">IRLTLT01JPM156N chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "FRED:IRLTLT01JPM156N",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-</section>
-    <section class="card">
-<h2>IN 10-Year Yield</h2>
-<!-- TradingView Widget BEGIN -->
-<div class="tradingview-widget-container" style="height:100%;width:100%">
-  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
-  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/FRED-INDIRLTLT01STM/" rel="noopener nofollow" target="_blank"><span class="blue-text">INDIRLTLT01STM chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
-  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-  {
-  "allow_symbol_change": true,
-  "calendar": false,
-  "details": false,
-  "hide_side_toolbar": true,
-  "hide_top_toolbar": false,
-  "hide_legend": false,
-  "hide_volume": false,
-  "hotlist": false,
-  "interval": "W",
-  "locale": "en",
-  "save_image": true,
-  "style": "2",
-  "symbol": "FRED:INDIRLTLT01STM",
-  "theme": "light",
-  "timezone": "Asia/Kolkata",
-  "backgroundColor": "rgba(255, 255, 255, 1)",
-  "gridColor": "rgba(156, 39, 176, 0.24)",
-  "watchlist": [],
-  "withdateranges": false,
-  "compareSymbols": [],
-  "support_host": "https://www.tradingview.com",
-  "studies": [],
-  "autosize": true
-}
-  </script>
-</div>
-<!-- TradingView Widget END -->
-</section>
-    <section class="card">
-<h2>US 10-Year Yield</h2>
-<!-- Paste US 10Y widget code here -->
-</section>
-  </div>
+
 </body>
 </html>
