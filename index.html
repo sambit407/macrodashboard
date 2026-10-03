@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Macro Market Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #f4f6f8;
+      font-family: Arial, sans-serif;
+      color: #17202a;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #657786;
+      margin-bottom: 24px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      min-height: 420px;
+      padding: 14px;
+      background: white;
+      border: 1px solid #e4e8ec;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    @media (max-width: 800px) {
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Macro Market Dashboard</h1>
+  <div class="subtitle">
+    Gold, Silver, Oil, Dollar, Currency and Rates
+  </div>
+
+  <div class="dashboard">
+    <section class="card">
+      <h2>Gold · XAU/USD</h2>
+     <!-- TradingView Widget BEGIN -->
+<div class="tradingview-widget-container" style="height:100%;width:100%">
+  <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank"><span class="blue-text">AAPL stock chart</span></a><span class="trademark">&nbsp;by TradingView</span></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+  {
+  "allow_symbol_change": true,
+  "calendar": false,
+  "details": false,
+  "hide_side_toolbar": true,
+  "hide_top_toolbar": false,
+  "hide_legend": false,
+  "hide_volume": false,
+  "hotlist": false,
+  "interval": "D",
+  "locale": "en",
+  "save_image": true,
+  "style": "1",
+  "symbol": "NASDAQ:AAPL",
+  "theme": "light",
+  "timezone": "Etc/UTC",
+  "backgroundColor": "#ffffff",
+  "gridColor": "rgba(46, 46, 46, 0.2)",
+  "watchlist": [],
+  "withdateranges": false,
+  "compareSymbols": [],
+  "support_host": "https://www.tradingview.com",
+  "studies": [],
+  "autosize": true
+}
+  </script>
+</div>
+<!-- TradingView Widget END -->
+    </section>
+
+    <section class="card">
+      <h2>Silver · XAG/USD</h2>
+      <!-- Paste Silver widget code here -->
+    </section>
+
+    <section class="card">
+      <h2>Brent Crude</h2>
+      <!-- Paste Brent widget code here -->
+    </section>
+
+    <section class="card">
+      <h2>US Dollar Index</h2>
+      <!-- Paste DXY widget code here -->
+    </section>
+
+    <section class="card">
+      <h2>USD/INR</h2>
+      <!-- Paste USD/INR widget code here -->
+    </section>
+
+    <section class="card">
+      <h2>US 10-Year Yield</h2>
+      <!-- Paste US 10Y widget code here -->
+    </section>
+  </div>
+</body>
+</html>
