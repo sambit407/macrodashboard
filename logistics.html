@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Logistics & Maritime Pulse</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#f4f6f8;--card:#fff;--text:#17202a;--muted:#667085;--border:#e4e8ec;--blue:#175cd3}
+    *{box-sizing:border-box} body{margin:0;padding:24px;background:var(--bg);font-family:Arial,sans-serif;color:var(--text)}
+    .page{max-width:1500px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+    h1{margin:0 0 6px}.sub,.updated{color:var(--muted)}.links{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 22px}
+    .links a,.btn{background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--blue);text-decoration:none;font-weight:700;font-size:13px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.card{height:460px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;flex-direction:column;min-width:0}
+    .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.head h2{font-size:17px;margin:0}.chart{position:relative;flex:1;min-height:0}.empty{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px}
+    .card:fullscreen{height:100vh;width:100vw;border:0;border-radius:0;padding:18px}.card:fullscreen .head h2{font-size:22px}
+    .notice{background:#fff8e1;border:1px solid #f0df9c;border-radius:10px;padding:12px 14px;margin-bottom:18px;color:#5d4a00;line-height:1.45}
+    @media(max-width:900px){body{padding:14px}.grid{grid-template-columns:1fr}.card{height:430px}.top{flex-direction:column}}
+  </style>
+</head>
+<body><main class="page">
+  <div class="top"><div><h1>Global Logistics & Maritime Pulse</h1><div class="sub">Freight, ports, routes, carriers, connectivity and container dwell</div></div><div id="updated" class="updated">Data not loaded</div></div>
+  <div class="notice">This page reads <b>logistics-data.json</b> from the same GitHub folder. No synthetic values are included. Populate the JSON from the sources below, then commit it to refresh the charts.</div>
+  <div class="links">
+    <a href="https://portwatch.imf.org/" target="_blank" rel="noopener">IMF PortWatch</a>
+    <a href="https://www.oecd.org/en/data/dashboards/monitoring-maritime-trade-the-oecd-ais-vessel-tracking-dashboard.html" target="_blank" rel="noopener">OECD AIS Dashboard</a>
+    <a href="https://unctadstat.unctad.org/datacentre/dataviewer/US.PLSCI" target="_blank" rel="noopener">UNCTAD Port Connectivity</a>
+    <a href="https://www.freightos.com/enterprise/terminal/freightos-baltic-index-global-container-pricing-index/" target="_blank" rel="noopener">Freightos FBX</a>
+    <a href="https://www.drewry.co.uk/trackers-and-indices/latest-trackers-and-indices/port-throughput-indices" target="_blank" rel="noopener">Drewry Trackers</a>
+    <a href="https://atlas.flexport.com/" target="_blank" rel="noopener">Flexport Atlas</a>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+const specs=[
+ {id:'freightIndex',title:'1. Global Container Freight Index',type:'line',builder:d=>multi(d.labels,d.series,'Index / USD per FEU')},
+ {id:'freightLanes',title:'2. Major Freight Lanes',type:'line',builder:d=>multi(d.labels,d.series,'USD per FEU')},
+ {id:'portActivity',title:'3. Port Activity: Calls and Trade Volume',type:'bar',builder:d=>dual(d.labels,d.portCalls,d.tradeVolumeMt)},
+ {id:'portCongestion',title:'4. Port Congestion: Average Waiting Time',type:'bar',builder:d=>single(d.ports,d.waitingHours,'Waiting hours','#d97706')},
+ {id:'routeShare',title:'5. Suez vs Cape Routing Share',type:'line',builder:d=>stacked(d.labels,d.suezPct,d.capePct)},
+ {id:'carrierCapacity',title:'6. Carrier Fleet Capacity',type:'bar',builder:d=>single(d.carriers,d.teu,'TEU capacity','#175cd3')},
+ {id:'portConnectivity',title:'7. Port Liner Shipping Connectivity',type:'line',builder:d=>multi(d.labels,d.series,'PLSCI')},
+ {id:'dwellDistribution',title:'8. Container Dwell Distribution',type:'bar',builder:d=>single(d.buckets,d.count,'Containers','#7c3aed')}
+];
+const palette=['#175cd3','#0e9384','#d97706','#7c3aed','#c2410c','#475467','#12b76a','#e31b54'];
+function multi(labels,series,yTitle){return {labels,datasets:(series||[]).map((s,i)=>({label:s.name,data:s.values,borderColor:palette[i%palette.length],backgroundColor:palette[i%palette.length],tension:.25,pointRadius:1.5})) ,yTitle}}
+function single(labels,values,label,color){return {labels,datasets:[{label,data:values,backgroundColor:color,borderColor:color}],yTitle:label}}
+function dual(labels,calls,volume){return {labels,datasets:[{label:'Port calls',data:calls,backgroundColor:'#175cd3',yAxisID:'y'},{label:'Trade volume (Mt)',data:volume,type:'line',borderColor:'#d97706',backgroundColor:'#d97706',yAxisID:'y1',tension:.25}],dual:true}}
+function stacked(labels,suez,cape){return {labels,datasets:[{label:'Suez %',data:suez,borderColor:'#175cd3',backgroundColor:'rgba(23,92,211,.45)',fill:true},{label:'Cape %',data:cape,borderColor:'#d97706',backgroundColor:'rgba(217,119,6,.45)',fill:true}],stacked:true,yTitle:'Share (%)'}}
+function options(cfg,horizontal=false){let scales=cfg.dual?{y:{beginAtZero:true,title:{display:true,text:'Port calls'},position:'left'},y1:{beginAtZero:true,title:{display:true,text:'Trade volume (Mt)'},position:'right',grid:{drawOnChartArea:false}}}:{y:{beginAtZero:true,stacked:!!cfg.stacked,title:{display:!!cfg.yTitle,text:cfg.yTitle}},x:{stacked:!!cfg.stacked}};return {responsive:true,maintainAspectRatio:false,indexAxis:horizontal?'y':'x',interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'}},scales}}
+function hasData(cfg){return cfg && Array.isArray(cfg.labels) && cfg.labels.length>0 && Array.isArray(cfg.datasets) && cfg.datasets.some(d=>Array.isArray(d.data)&&d.data.length>0)}
+function card(spec,data){const el=document.createElement('section');el.className='card';el.id='card-'+spec.id;el.innerHTML=`<div class="head"><h2>${spec.title}</h2><button class="btn" type="button">⛶ Full screen</button></div><div class="chart"><canvas></canvas><div class="empty">No data yet. Populate the corresponding section in logistics-data.json.</div></div>`;el.querySelector('.btn').onclick=()=>document.fullscreenElement?document.exitFullscreen():el.requestFullscreen();const cfg=spec.builder(data||{});if(!hasData(cfg)){el.querySelector('.empty').style.display='flex'}else{const horizontal=['portCongestion','carrierCapacity'].includes(spec.id);new Chart(el.querySelector('canvas'),{type:spec.type,data:{labels:cfg.labels,datasets:cfg.datasets},options:options(cfg,horizontal)})}return el}
+async function init(){try{const r=await fetch('logistics-data.json',{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const data=await r.json();document.getElementById('updated').textContent=data.lastUpdated?'Data updated: '+data.lastUpdated:'Data file loaded; update date not supplied';const grid=document.getElementById('grid');specs.forEach(s=>grid.appendChild(card(s,data[s.id])))}catch(e){document.getElementById('updated').textContent='Could not load logistics-data.json: '+e.message}}
+init();
+</script></body></html>

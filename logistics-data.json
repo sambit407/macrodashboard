@@ -1,0 +1,11 @@
+{
+  "lastUpdated": "",
+  "freightIndex": {"labels": [], "series": []},
+  "freightLanes": {"labels": [], "series": []},
+  "portActivity": {"labels": [], "portCalls": [], "tradeVolumeMt": []},
+  "portCongestion": {"ports": [], "waitingHours": []},
+  "routeShare": {"labels": [], "suezPct": [], "capePct": []},
+  "carrierCapacity": {"carriers": [], "teu": []},
+  "portConnectivity": {"labels": [], "series": []},
+  "dwellDistribution": {"buckets": [], "count": []}
+}
